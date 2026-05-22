@@ -1,3 +1,16 @@
+## 🌐 Deployed URLs
+
+| Service | URL |
+|---------|-----|
+| Frontend | https://job-search-d428tx8j8-berker-s-projects.vercel.app |
+| API Gateway | https://job-search-app-5kd2.onrender.com |
+| Job Posting Service | https://job-search-app-1-9mhh.onrender.com |
+| Job Search Service | https://job-search-service-dc3n.onrender.com |
+| Notification Service | https://notification-service-urg7.onrender.com |
+| GitHub Repo | https://github.com/FreshmanVergi/job-search-app |
+
+---
+
 # Job Search Application — SE4458 Final Project
 
 A kariyer.net-style job search platform built with microservices architecture.
@@ -255,3 +268,76 @@ All routes go through the API Gateway.
 - Autocomplete relies on database ILIKE queries; for production, Elasticsearch/Typesense would be better
 - AI Agent context is limited to 10 jobs; a vector search would improve relevance
 - Rate limiting is global (200 req/15min per IP); should be per-user in production
+
+## 🐛 Sorunlar ve Çözümler
+
+### 1. MongoDB DNS Çözümleme Hatası
+**Sorun:** `querySrv ENOTFOUND _mongodb._tcp.job-search-cluster.buzf1lj.mongodb.net`
+**Neden:** Cluster URL'indeki `buzf1lj` kısmı aslında `buzf11j` (harf L değil rakam 1) idi.
+**Çözüm:** MongoDB Atlas dashboard'dan connection string kopyalanarak doğru URL kullanıldı.
+
+### 2. Node.js 20 WebSocket Desteği
+**Sorun:** `Error: Node.js 20 detected without native WebSocket support` — Render'a deploy edilince tüm Supabase client'ları crash oldu.
+**Neden:** Supabase JS v2'nin yeni sürümü Node.js < 22'de `ws` paketini gerektiriyor.
+**Çözüm:** Her servise `npm install ws` yapıldı ve `createClient` çağrılarına `{ realtime: { transport: ws } }` eklendi.
+
+### 3. Next.js useSearchParams Suspense Hatası
+**Sorun:** `useSearchParams() should be wrapped in a suspense boundary` — Vercel build'i başarısız oldu.
+**Neden:** Next.js 14'te `useSearchParams` hook'u Suspense boundary içinde olmalı.
+**Çözüm:** `/login` ve `/search` sayfalarındaki bileşenler `<Suspense>` ile sarıldı.
+
+### 4. UUID Validation Hatası (Admin Panel)
+**Sorun:** Admin panelinden ilan eklerken 400 Bad Request hatası.
+**Neden:** `express-validator`'ın `isUUID()` kontrolü seed data UUID formatını reddediyordu.
+**Çözüm:** `body("company_id").isUUID()` → `body("company_id").notEmpty()` olarak değiştirildi.
+
+### 5. Environment Variables Karışması
+**Sorun:** İki servisin `.env` içerikleri birbirine karışmıştı.
+**Neden:** `touch` komutu ile oluşturulan dosyalara yanlış değerler eklendi.
+**Çözüm:** Dosyalar tamamen temizlenip doğru değerler girildi.
+
+### 6. CORS Hatası (Vercel → Render)
+**Sorun:** Vercel'deki frontend Render'daki gateway'e istek atamıyordu.
+**Neden:** Gateway'in `FRONTEND_URL` env değeri Vercel URL'i ile güncellenmemişti.
+**Çözüm:** `FRONTEND_URL=https://job-search-d428tx8j8-berker-s-projects.vercel.app` olarak güncellendi.
+
+### 7. AI Agent — Anthropic API Ücretsiz Değil
+**Sorun:** AI Agent için Claude API kullanılmak istendi ancak Anthropic console'da "Buy Credits" butonu çalışmadı (ödeme sayfası aktif olmadı).
+**Neden:** Anthropic API tamamen ücretli, ücretsiz tier yok. Ödeme işlemi tamamlanamadı.
+**Çözüm:** AI Agent keyword-based basit bir arama motoru ile mock olarak implement edildi. Kullanıcının mesajından şehir ve pozisyon bilgisi çıkarılarak veritabanından eşleşen ilanlar gösterildi. Gerçek Anthropic API key temin edildiğinde `services/job-search-service/src/routes/ai.js` dosyasında `ANTHROPIC_API_KEY` env değişkeni set edilerek aktif hale getirilebilir.
+##  Problems Encountered & Solutions
+
+### 1. MongoDB DNS Resolution Error
+**Problem:** `querySrv ENOTFOUND _mongodb._tcp.job-search-cluster.buzf1lj.mongodb.net`
+**Cause:** The cluster URL contained `buzf1lj` but the actual hostname was `buzf11j` (digit 1, not letter L).
+**Solution:** Copied the connection string directly from MongoDB Atlas dashboard to get the correct URL.
+
+### 2. Node.js 20 WebSocket Support
+**Problem:** `Error: Node.js 20 detected without native WebSocket support` — all Supabase clients crashed on Render.
+**Cause:** Supabase JS v2 requires the `ws` package on Node.js < 22.
+**Solution:** Ran `npm install ws` in each service and added `{ realtime: { transport: ws } }` to all `createClient` calls.
+
+### 3. Next.js useSearchParams Suspense Error
+**Problem:** `useSearchParams() should be wrapped in a suspense boundary` — Vercel build failed.
+**Cause:** In Next.js 14, the `useSearchParams` hook must be inside a Suspense boundary.
+**Solution:** Wrapped the components in `/login` and `/search` pages with `<Suspense>`.
+
+### 4. UUID Validation Error (Admin Panel)
+**Problem:** 400 Bad Request when adding a job from the admin panel.
+**Cause:** `express-validator`'s `isUUID()` check was rejecting the seed data company IDs.
+**Solution:** Changed `body("company_id").isUUID()` to `body("company_id").notEmpty()`.
+
+### 5. Mixed Environment Variables
+**Problem:** Two services had their `.env` contents mixed together.
+**Cause:** Files created with `touch` had values from multiple services pasted into them.
+**Solution:** Files were completely cleared and correct values re-entered for each service.
+
+### 6. CORS Error (Vercel → Render)
+**Problem:** Frontend on Vercel could not make requests to the gateway on Render.
+**Cause:** The gateway's `FRONTEND_URL` env variable had not been updated with the Vercel URL.
+**Solution:** Updated `FRONTEND_URL=https://job-search-d428tx8j8-berker-s-projects.vercel.app`.
+
+### 7. AI Agent — Anthropic API Not Free
+**Problem:** Claude API was intended for the AI Agent but the "Buy Credits" button on the Anthropic console did not work (payment page was not functional).
+**Cause:** The Anthropic API has no free tier and the payment could not be completed.
+**Solution:** The AI Agent was implemented as a keyword-based mock. It extracts city and position from the user's message and returns matching jobs from the database. Once a valid `ANTHROPIC_API_KEY` is available, it can be set as an environment variable in `services/job-search-service/src/routes/ai.js` to enable the full Claude-powered experience.
