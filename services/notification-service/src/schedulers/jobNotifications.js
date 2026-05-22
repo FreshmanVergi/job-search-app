@@ -2,10 +2,12 @@ const cron = require("node-cron");
 const mongoose = require("mongoose");
 const { createClient } = require("@supabase/supabase-js");
 const { sendJobAlertEmail } = require("../lib/mailer");
+const ws = require("ws");
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
+  process.env.SUPABASE_SERVICE_KEY,
+  { realtime: { transport: ws } }
 );
 
 // Lazy-load models (mongoose must be connected before requiring)
