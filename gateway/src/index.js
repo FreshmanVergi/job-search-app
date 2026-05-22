@@ -1,4 +1,6 @@
 require("dotenv").config();
+const ws = require("ws");
+const { createClient } = require("@supabase/supabase-js");
 const express = require("express");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 const cors = require("cors");
@@ -13,7 +15,8 @@ const PORT = process.env.PORT || 3000;
 // Supabase client for token verification
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_ANON_KEY,
+  { realtime: { transport: ws } }
 );
 
 // Middleware
