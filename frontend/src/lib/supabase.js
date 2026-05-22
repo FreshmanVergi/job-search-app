@@ -1,7 +1,10 @@
-import { createBrowserClient } from "@supabase/ssr";
+const { createClient } = require("@supabase/supabase-js");
+const ws = require("ws");
 
-export const createClient = () =>
-  createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY,
+  { realtime: { transport: ws } }
+);
+
+module.exports = supabase;

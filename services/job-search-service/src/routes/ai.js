@@ -1,11 +1,13 @@
 const express = require("express");
 const { createClient } = require("@supabase/supabase-js");
+const ws = require("ws");
 
 const router = express.Router();
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
+  process.env.SUPABASE_SERVICE_KEY,
+  { realtime: { transport: ws } }
 );
 
 const getUser = (req) => ({
