@@ -10,6 +10,9 @@
 | GitHub Repo | https://github.com/FreshmanVergi/job-search-app |
 
 ---
+## 📹 Demo Video
+
+[Watch the demo video](https://drive.google.com/file/d/1YwO8hAiIHhI8owWTyobkc__tF6VDXBNN/view?usp=sharing)
 
 # Job Search Application — SE4458 Final Project
 
@@ -342,6 +345,4 @@ All routes go through the API Gateway.
 **Cause:** The Anthropic API has no free tier and the payment could not be completed.
 **Solution:** The AI Agent was implemented as a keyword-based mock. It extracts city and position from the user's message and returns matching jobs from the database. Once a valid `ANTHROPIC_API_KEY` is available, it can be set as an environment variable in `services/job-search-service/src/routes/ai.js` to enable the full Claude-powered experience.
 
-## 📹 Demo Video
 
-[Watch the demo video](https://drive.google.com/file/d/1YwO8hAiIHhI8owWTyobkc__tF6VDXBNN/view?usp=sharing)
