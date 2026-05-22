@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  gateway:
+    build: ./gateway
+    ports:
+      - "3000:3000"
+    env_file: ./gateway/.env
+    depends_on:
+      - job-posting-service
+      - job-search-service
+      - notification-service
+    restart: unless-stopped
+
+  job-posting-service:
+    build: ./services/job-posting-service
+    ports:
+      - "3001:3001"
+    env_file: ./services/job-posting-service/.env
+    restart: unless-stopped
+
+  job-search-service:
+    build: ./services/job-search-service
+    ports:
+      - "3002:3002"
+    env_file: ./services/job-search-service/.env
+    restart: unless-stopped
+
+  notification-service:
+    build: ./services/notification-service
+    ports:
+      - "3003:3003"
+    env_file: ./services/notification-service/.env
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3004:3000"
+    env_file: ./frontend/.env
+    restart: unless-stopped
